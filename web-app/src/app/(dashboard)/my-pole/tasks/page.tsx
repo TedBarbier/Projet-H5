@@ -16,10 +16,15 @@ export default async function TasksPage({
     // @ts-ignore
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { poleId: true, role: true }
+        select: { poleId: true, role: true, memberships: { select: { poleId: true, role: true } } }
     });
 
     let poleId = user?.poleId;
+    // Fallback to membership if primary poleId is null
+    if (!poleId && user?.memberships && user.memberships.length > 0) {
+        const activeMembership = user.memberships.find(m => ["STAFF", "RESP"].includes(m.role)) || user.memberships[0];
+        if (activeMembership) poleId = activeMembership.poleId;
+    }
 
     // Admin Override
     // @ts-ignore
