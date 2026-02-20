@@ -3,8 +3,15 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import Redis from 'ioredis';
+import webpush from 'web-push';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+
+webpush.setVapidDetails(
+    'mailto:contact@projet-h5.fr',
+    'BAhNnVh8vY-plKPwFVbTQ90e4HSlUnFl6HmefQEwI91ZH3CjsAkx2GWPS47kgul1GBlWUcj57T-hUUthomBIjV0',
+    'f96Pu6a9s7lFkKcf_UUjH4w7ZavVugP_FJIV3uB9uWY'
+);
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
@@ -58,6 +65,30 @@ export async function POST(req: Request) {
             }
         };
         await redis.publish('events-updates', JSON.stringify(message));
+
+        // 3. Broadcast WebPush Notifications
+        const subscriptions = await prisma.pushSubscription.findMany();
+        const pushPayload = JSON.stringify({
+            title: `📢 ${announcement.title}`,
+            body: announcement.content.length > 100 ? announcement.content.substring(0, 100) + '...' : announcement.content
+        });
+
+        // Send to all subscribers asynchronously
+        Promise.all(subscriptions.map(async (sub: any) => {
+            try {
+                await webpush.sendNotification({
+                    endpoint: sub.endpoint,
+                    keys: { p256dh: sub.p256dh, auth: sub.auth }
+                }, pushPayload);
+            } catch (error: any) {
+                if (error.statusCode === 404 || error.statusCode === 410) {
+                    console.log('Subscription has expired or is no longer valid: ', error);
+                    await prisma.pushSubscription.delete({ where: { id: sub.id } });
+                } else {
+                    console.error('Error sending push notification: ', error);
+                }
+            }
+        })).catch(err => console.error("Batch push error", err));
 
         return NextResponse.json(announcement);
     } catch (error) {

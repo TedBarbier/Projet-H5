@@ -60,6 +60,9 @@ model User {
   // New Chat System
   conversations ConversationParticipant[]
   sentMessages  Message[]
+
+  // PWA Subscriptions
+  pushSubscriptions PushSubscription[]
 }
 
 model MealLog {
@@ -325,4 +328,16 @@ model Message {
   
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
 }
