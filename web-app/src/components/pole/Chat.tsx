@@ -56,14 +56,24 @@ export default function Chat({ poleId }: { poleId: string }) {
         e.preventDefault();
         if (!input.trim()) return;
 
-        // Optimistic UI? Maybe wait for ack to prevent out of order
-        // Let's just send and wait for socket reflection or response
-        await fetch(`/api/poles/${poleId}/messages`, {
+        const optimisticInput = input;
+        setInput('');
+
+        const res = await fetch(`/api/poles/${poleId}/messages`, {
             method: 'POST',
-            body: JSON.stringify({ content: input }),
+            body: JSON.stringify({ content: optimisticInput }),
             headers: { 'Content-Type': 'application/json' }
         });
-        setInput('');
+
+        if (res.ok) {
+            const newMessage = await res.json();
+            setMessages(prev => {
+                // Prevent duplicate if socket already delivered it
+                if (prev.some(m => m.id === newMessage.id)) return prev;
+                return [...prev, newMessage];
+            });
+            scrollToBottom();
+        }
     };
 
     return (

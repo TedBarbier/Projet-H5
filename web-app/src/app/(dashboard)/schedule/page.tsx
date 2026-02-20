@@ -127,7 +127,7 @@ export default function SchedulePage() {
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4 animate-in fade-in" onClick={() => setSelectedEventId(null)}>
                     <div
                         onClick={e => e.stopPropagation()}
-                        className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom-10"
+                        className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 pb-24 sm:pb-6 max-h-[85vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom-10"
                     >
                         <div className="flex justify-between items-start mb-6">
                             <h3 className="text-2xl font-bold leading-tight pr-4">{selectedEvent.title}</h3>

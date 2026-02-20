@@ -67,28 +67,32 @@ export async function POST(req: Request) {
         await redis.publish('events-updates', JSON.stringify(message));
 
         // 3. Broadcast WebPush Notifications
-        const subscriptions = await prisma.pushSubscription.findMany();
-        const pushPayload = JSON.stringify({
-            title: `📢 ${announcement.title}`,
-            body: announcement.content.length > 100 ? announcement.content.substring(0, 100) + '...' : announcement.content
-        });
+        try {
+            const subscriptions = await prisma.pushSubscription.findMany();
+            const pushPayload = JSON.stringify({
+                title: `📢 ${announcement.title}`,
+                body: announcement.content.length > 100 ? announcement.content.substring(0, 100) + '...' : announcement.content
+            });
 
-        // Send to all subscribers asynchronously
-        Promise.all(subscriptions.map(async (sub: any) => {
-            try {
-                await webpush.sendNotification({
-                    endpoint: sub.endpoint,
-                    keys: { p256dh: sub.p256dh, auth: sub.auth }
-                }, pushPayload);
-            } catch (error: any) {
-                if (error.statusCode === 404 || error.statusCode === 410) {
-                    console.log('Subscription has expired or is no longer valid: ', error);
-                    await prisma.pushSubscription.delete({ where: { id: sub.id } });
-                } else {
-                    console.error('Error sending push notification: ', error);
+            // Send to all subscribers asynchronously
+            Promise.all(subscriptions.map(async (sub: any) => {
+                try {
+                    await webpush.sendNotification({
+                        endpoint: sub.endpoint,
+                        keys: { p256dh: sub.p256dh, auth: sub.auth }
+                    }, pushPayload);
+                } catch (error: any) {
+                    if (error.statusCode === 404 || error.statusCode === 410) {
+                        console.log('Subscription has expired or is no longer valid: ', error);
+                        await prisma.pushSubscription.delete({ where: { id: sub.id } });
+                    } else {
+                        console.error('Error sending push notification: ', error);
+                    }
                 }
-            }
-        })).catch(err => console.error("Batch push error", err));
+            })).catch(err => console.error("Batch push error", err));
+        } catch (pushError) {
+            console.error("WebPush broadcast failed (maybe table missing?), but announcement was saved:", pushError);
+        }
 
         return NextResponse.json(announcement);
     } catch (error) {
