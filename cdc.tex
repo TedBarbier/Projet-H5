@@ -1,0 +1,111 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- Packages de base ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+
+% --- Configuration des couleurs INSA ---
+\definecolor{insa-red}{RGB}{193, 0, 42}
+\definecolor{insa-magenta}{RGB}{236, 0, 140}
+
+\geometry{margin=2.5cm}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=insa-red,
+    urlcolor=blue,
+    pdftitle={Cahier des Charges - App Sportive INSA}
+}
+
+% --- Mise en page des titres ---
+\titleformat{\section}{\color{insa-red}\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\color{insa-red!80}\normalfont\large\bfseries}{\thesubsection}{1em}{}
+
+% --- Informations du document ---
+\title{
+    \vfill
+    \Huge \textbf{Cahier des Charges Fonctionnel}\\
+    \large Application Événementielle Sportive INSA\\
+    \vfill
+}
+\author{Équipe Projet INSA}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+\section{Présentation du Projet}
+Ce document définit les spécifications techniques et fonctionnelles pour la création d'une application web destinée à un événement sportif inter-INSA regroupant environ \textbf{1000 participants}.
+
+\section{Analyse des Besoins Fonctionnels}
+
+\subsection{Gestion des Utilisateurs et Inscriptions}
+\begin{itemize}
+    \item \textbf{Authentification :} Accès restreint aux adresses \texttt{@insa-xxx.fr}.
+    \item \textbf{Profil :} Choix du sport (liste prédéfinie) et de l'école d'origine.
+    \item \textbf{Paiement :} Intégration d'un module de paiement sécurisé (API Stripe/Lydia).
+\end{itemize}
+
+\subsection{Informations en Temps Réel}
+\begin{itemize}
+    \item \textbf{Flux d'actualités :} Page principale avec annonces et notifications "push".
+    \item \textbf{Planning :} Calendrier dynamique des épreuves du week-end.
+    \item \textbf{GPS :} Cartographie des lieux d'épreuves intégrée.
+\end{itemize}
+
+\subsection{Interaction et Scoring}
+\begin{itemize}
+    \item \textbf{Live Score :</u> Mise à jour des résultats en direct par le staff.
+    \item \textbf{Système de Vote :} Module permettant d'élire la meilleure délégation/école durant l'événement.
+\end{itemize}
+
+\subsection{Logistique et "Badging"}
+\begin{itemize}
+    \item \textbf{QR Code Dynamique :} Génération d'un pass unique pour la restauration.
+    \item \textbf{Technologie :} Support du NFC pour les terminaux compatibles.
+\end{itemize}
+
+\section{Spécifications Techniques}
+
+\subsection{Contraintes de Charge}
+L'application doit supporter une charge nominale de \textbf{1000 utilisateurs simultanés}. Une architecture basée sur des \textit{WebSockets} est préconisée pour les scores, avec une mise en cache via \textbf{Redis}.
+
+\subsection{Identité Visuelle}
+L'interface doit proposer deux thèmes commutables :
+\begin{itemize}
+    \item \textbf{Thème Standard :} Rouge (\texttt{\#C1002A})
+    \item \textbf{Thème CVL :} Magenta (\texttt{\#EC008C})
+\end{itemize}
+
+\section{Interface Administrateur (Staff)}
+Le panel d'administration devra permettre :
+\begin{itemize}
+    \item La gestion des inscriptions et l'export des listes.
+    \item La modification des plannings en temps réel.
+    \item Le scan des badges pour la gestion des repas.
+\end{itemize}
+
+\section{Sécurité}
+\begin{itemize}
+    \item Chiffrement des données (HTTPS/TLS).
+    \item Protection contre les injections SQL et failles XSS.
+    \item RGPD : Gestion du consentement pour les données personnelles.
+\end{itemize}
+
+\vfill
+\begin{center}
+    \textit{Document généré pour le projet sportif INSA 2026.}
+\end{center}
+
+\end{document}
