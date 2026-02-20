@@ -23,11 +23,7 @@ export async function GET(req: Request) {
             await prisma.poleMessage.deleteMany({ where: { authorId: user.id } });
             await prisma.announcement.deleteMany({ where: { authorId: user.id } });
 
-            // For tasks, we might not want to delete the task, just unassign
-            await prisma.poleTask.updateMany({
-                where: { assigneeId: user.id },
-                data: { assigneeId: null }
-            });
+            // For tasks, we clear creatorId
             await prisma.poleTask.updateMany({
                 where: { creatorId: user.id },
                 data: { creatorId: null }

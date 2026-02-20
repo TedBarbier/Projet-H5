@@ -13,15 +13,15 @@ export default async function AdminLayout({
     // Secure Admin Access Server-Side
     // @ts-ignore
     const role = session?.user?.role;
-    if (!session || !["SUPER_ADMIN", "ADMIN", "POLE_RESP"].includes(role)) {
+    if (!session || !["SUPER_ADMIN", "ADMIN", "POLE_RESP"].includes(role as string)) {
         redirect("/") // Redirect unauthorized users to home/feed
     }
 
-    const isGlobalAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role);
+    const isGlobalAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role as string);
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col md:flex-row">
-            <AdminNav role={role} />
+            <AdminNav role={role as string} />
             <main className="flex-1 p-4 md:p-8">
                 {children}
             </main>

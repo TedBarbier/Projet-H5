@@ -24,7 +24,7 @@ export default async function TasksPage({
     // Admin Override
     // @ts-ignore
     const role = user?.role;
-    const isGlobalAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role);
+    const isGlobalAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role || '');
 
     const params = await searchParams;
     const viewPoleId = params.viewPole as string;

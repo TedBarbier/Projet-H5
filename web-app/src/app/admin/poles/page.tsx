@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 
-type Pole = { id: string, name: string, description: string, color: string, _count: { members: number } }
+type Pole = { id: string, name: string, description: string, color: string, _count: { members: number, memberships?: number } }
 
 export default function AdminPolesPage() {
     const [poles, setPoles] = useState<Pole[]>([])

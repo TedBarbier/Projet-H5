@@ -17,7 +17,7 @@ export default function BottomNav() {
 
     // @ts-ignore
     const role = session?.user?.role;
-    if (["SUPER_ADMIN", "ADMIN", "POLE_RESP", "STAFF"].includes(role)) {
+    if (["SUPER_ADMIN", "ADMIN", "POLE_RESP", "STAFF"].includes(role || '')) {
         navItems.push({ name: 'Admin', href: '/admin', icon: '⚙️' })
     }
 

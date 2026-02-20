@@ -8,7 +8,7 @@ export default async function PoleLayout({ children }: { children: React.ReactNo
     const role = session?.user?.role || 'USER';
     const isAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role as string);
 
-    let poles = [];
+    let poles: { id: string; name: string }[] = [];
     if (isAdmin) {
         poles = await prisma.pole.findMany({
             select: { id: true, name: true },
