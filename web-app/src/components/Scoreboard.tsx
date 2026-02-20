@@ -22,8 +22,8 @@ export default function Scoreboard() {
 
     useEffect(() => {
         // Connect to WebSocket Server (Phase 4)
-        const socketUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : "http://localhost:3001";
-        const socket = io(socketUrl, { transports: ["websocket"] });
+        const socketUrl = typeof window !== 'undefined' ? undefined : "http://localhost:3001";
+        const socket = io(socketUrl as any, { transports: ["websocket"] });
 
         socket.on('connect', () => {
             console.log("Connected to Live Scores");

@@ -5,8 +5,8 @@ export const useSocket = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
 
     useEffect(() => {
-        const socketUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : "http://localhost:3001";
-        const socketInstance = io(socketUrl, {
+        const socketUrl = typeof window !== 'undefined' ? undefined : "http://localhost:3001";
+        const socketInstance = io(socketUrl as any, {
             transports: ["websocket"], // force websocket to avoid polling issues with Next.js proxy
         });
 
