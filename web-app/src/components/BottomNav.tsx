@@ -17,12 +17,17 @@ export default function BottomNav() {
 
     // @ts-ignore
     const role = session?.user?.role;
+    const hasPole = !!session?.user?.poleId || (session?.user?.memberships && session.user.memberships.length > 0);
+
+    // Add "Mon Pôle" for Staff, Resps, and Admins who belong to a pole
+    if (["SUPER_ADMIN", "ADMIN", "POLE_RESP", "STAFF"].includes(role || '') && hasPole) {
+        navItems.push({ name: 'Mon Pôle', href: '/my-pole/tasks', icon: '⛺' })
+    }
+
+    // Add Admin panel only for Admins, Resps, and Staff
     if (["SUPER_ADMIN", "ADMIN", "POLE_RESP", "STAFF"].includes(role || '')) {
         navItems.push({ name: 'Admin', href: '/admin', icon: '⚙️' })
     }
-
-    // Also add "Mon Pôle" if user has one? Maybe too crowded. Let's keep it in Admin or Profile for now to keep bar clean.
-    // Actually, user asked for access to Admin menu in public page.
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 pb-safe">
