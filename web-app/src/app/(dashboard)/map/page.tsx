@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 const Map = dynamic(() => import('@/components/Map'), { ssr: false })
 
 export default function MapPage() {
-    const [locations, setLocations] = useState([])
+    const [locations, setLocations] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
