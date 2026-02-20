@@ -34,7 +34,8 @@ export default function SchedulePage() {
     useEffect(() => {
         fetchEvents()
 
-        const socket = io('http://localhost:3001');
+        const socketUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? undefined : "http://localhost:3001";
+        const socket = io(socketUrl as any, { transports: ["websocket"] });
         socket.on('events-updates', (msg: any) => {
             if (msg.type === 'score_update') {
                 const update = msg.payload;
