@@ -34,9 +34,10 @@ export default function SchedulePage() {
     useEffect(() => {
         fetchEvents()
 
-        const socketUrl = typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? undefined : "http://localhost:3001";
-        const socket = io(socketUrl as any, { transports: ["websocket"] });
+        const socketUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : "http://localhost:3001";
+        const socket = io(socketUrl, { transports: ["websocket"] });
         socket.on('events-updates', (msg: any) => {
+            console.log("Schedule WS Event:", msg);
             if (msg.type === 'score_update') {
                 const update = msg.payload;
                 setEvents(prev => prev.map(ev => {
@@ -44,7 +45,7 @@ export default function SchedulePage() {
                         return {
                             ...ev,
                             match: {
-                                ...ev.match!,
+                                ...ev.match,
                                 homeScore: update.homeScore,
                                 awayScore: update.awayScore,
                                 status: update.status
