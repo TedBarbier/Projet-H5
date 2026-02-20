@@ -1,47 +1,65 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 
 export const VAPID_PUBLIC_KEY = "BAhNnVh8vY-plKPwFVbTQ90e4HSlUnFl6HmefQEwI91ZH3CjsAkx2GWPS47kgul1GBlWUcj57T-hUUthomBIjV0";
 
 export default function PushManager() {
     const { data: session } = useSession()
+    const [showBanner, setShowBanner] = useState(false);
 
     useEffect(() => {
         if (!session) return;
 
-        async function registerPush() {
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('Service Worker registered with scope:', registration.scope);
-
-                    // Request permission and subscribe
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        const subscription = await registration.pushManager.subscribe({
-                            userVisibleOnly: true,
-                            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                        });
-
-                        // Send to server
-                        await fetch('/api/push/subscribe', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(subscription)
-                        });
-                    }
-                } catch (error) {
-                    console.error('Service Worker Registration or Push Subscription failed:', error);
-                }
+        // Only show banner if permission is not yet granted or denied, and push is supported
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            if (Notification.permission === 'default') {
+                setShowBanner(true);
             }
         }
-
-        registerPush();
     }, [session]);
 
-    return null;
+    const handleSubscribe = async () => {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+
+                // User gesture required here for iOS Safari
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    setShowBanner(false);
+                    const subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                    });
+
+                    await fetch('/api/push/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(subscription)
+                    });
+                } else {
+                    setShowBanner(false);
+                }
+            } catch (error) {
+                console.error('Push Subscription failed:', error);
+                setShowBanner(false);
+            }
+        }
+    };
+
+    if (!showBanner) return null;
+
+    return (
+        <div className="fixed top-0 left-0 right-0 bg-blue-600 text-white p-3 z-[100] flex justify-between items-center shadow-lg text-sm md:text-base px-4">
+            <span>Voulez-vous recevoir les annonces importantes ?</span>
+            <div className="flex gap-2">
+                <button onClick={() => setShowBanner(false)} className="px-3 py-1 bg-blue-700 rounded hover:bg-blue-800">Non</button>
+                <button onClick={handleSubscribe} className="px-3 py-1 bg-white text-blue-600 font-bold rounded hover:bg-gray-100">Activer</button>
+            </div>
+        </div>
+    );
 }
 
 // Utility function

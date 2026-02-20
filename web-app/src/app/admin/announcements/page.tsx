@@ -124,16 +124,16 @@ export default function AdminAnnouncementsPage() {
                                 <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                                     {a.author?.name || 'Inconnu'}
                                 </td>
-                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right">
+                                <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm text-right space-x-3">
                                     {/* @ts-ignore */}
-                                    {session?.user?.role === 'ADMIN' && (
+                                    {session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN' ? (
                                         <button
                                             onClick={() => handleDelete(a.id)}
-                                            className="text-red-600 hover:text-red-900"
+                                            className="text-red-600 hover:text-red-900 font-bold bg-red-50 px-2 py-1 rounded"
                                         >
                                             Supprimer
                                         </button>
-                                    )}
+                                    ) : null}
                                 </td>
                             </tr>
                         ))}

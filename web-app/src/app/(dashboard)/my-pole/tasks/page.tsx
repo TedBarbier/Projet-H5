@@ -39,9 +39,9 @@ export default async function TasksPage({
     }
 
     return (
-        <div className="h-[calc(100vh-140px)] flex flex-col">
+        <div className="h-[calc(100vh-80px)] flex flex-col pb-20">
             <h1 className="text-2xl font-bold text-gray-900 mb-6">📋 Kanban du Pôle</h1>
-            <div className="flex-1">
+            <div className="flex-1 overflow-hidden">
                 <Kanban poleId={poleId} />
             </div>
         </div>

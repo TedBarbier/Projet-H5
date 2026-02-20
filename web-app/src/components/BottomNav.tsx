@@ -17,10 +17,13 @@ export default function BottomNav() {
 
     // @ts-ignore
     const role = session?.user?.role;
-    const hasPole = !!session?.user?.poleId || (session?.user?.memberships && session.user.memberships.length > 0);
+    // @ts-ignore
+    const memberships = session?.user?.memberships || [];
+    const hasPole = !!session?.user?.poleId || memberships.length > 0;
+    const hasStaffOrRespMembership = memberships.some((m: any) => ["STAFF", "RESP"].includes(m.role));
 
-    // Add "Mon Pôle" for Staff, Resps, and Admins who belong to a pole
-    if (["SUPER_ADMIN", "ADMIN", "POLE_RESP", "STAFF"].includes(role || '') && hasPole) {
+    // Add "Mon Pôle" for Staff, Resps, Admins, and Pole Members with STAFF/RESP roles
+    if ((["SUPER_ADMIN", "ADMIN", "POLE_RESP", "STAFF"].includes(role || '') || hasStaffOrRespMembership) && hasPole) {
         navItems.push({ name: 'Mon Pôle', href: '/my-pole/tasks', icon: '⛺' })
     }
 
