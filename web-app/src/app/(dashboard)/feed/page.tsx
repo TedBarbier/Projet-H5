@@ -15,11 +15,29 @@ export default function FeedPage() {
     const [news, setNews] = useState<NewsItem[]>([])
 
     useEffect(() => {
+        // Fetch historical announcements
+        fetch('/api/announcements')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setNews(data);
+                }
+            })
+            .catch(err => console.error("Failed to fetch initial news", err));
+    }, []);
+
+    useEffect(() => {
         if (!socket) return
 
-        socket.on('events-updates', (newItem: NewsItem) => {
-            console.log("New event received:", newItem)
-            // Add new item to the top of the list
+        socket.on('events-updates', (payload: any) => {
+            console.log("New event received:", payload)
+            // Handle both structure types (/admin/announce vs /admin/announcements)
+            const newItem: NewsItem = {
+                id: payload.payload?.id || payload.id || Date.now(),
+                title: payload.payload?.title || payload.title,
+                content: payload.payload?.content || payload.content,
+                time: payload.payload?.timestamp ? new Date(payload.payload.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (payload.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+            };
             setNews((prev) => [newItem, ...prev])
         })
 
