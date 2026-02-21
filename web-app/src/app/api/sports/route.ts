@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/authOptions"
+import { hasPermission } from '@/lib/authUtils';
 
 // GET: List all available sports
 export async function GET() {
@@ -19,10 +20,10 @@ export async function GET() {
 // POST: Add a new sport (Admin only, or initial seed)
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
+    const userRole = session?.user?.role as string | undefined;
+    const canManageUsers = await hasPermission('canManageUsers');
 
-    // Check if user is authorized (Admin or Pole Staff)
-    // POLE_STATUS was a typo, assuming POLE_RESP or POLE_STAFF
-    if (!session || !['ADMIN', 'SUPER_ADMIN', 'POLE_STATUS', 'POLE_RESP'].includes(session.user.role)) {
+    if (!session || (!['ADMIN', 'SUPER_ADMIN'].includes(userRole || '') && !canManageUsers)) {
         if (process.env.NODE_ENV !== 'development') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 type Pole = {
     id: string, name: string, description: string, color: string,
@@ -13,7 +14,20 @@ type Pole = {
 }
 
 export default function AdminPolesPage() {
+    const { data: session } = useSession()
     const [poles, setPoles] = useState<Pole[]>([])
+
+    const isGlobalAdmin = ['SUPER_ADMIN', 'ADMIN'].includes((session?.user as any)?.role)
+    const canManagePole = (poleId: string) => {
+        if (isGlobalAdmin) return true;
+        const userRole = (session?.user as any)?.role;
+        const userPoleId = (session?.user as any)?.poleId;
+        const userMemberships = (session?.user as any)?.memberships || [];
+        if (userRole === 'POLE_RESP' && userPoleId === poleId) return true;
+        if (userMemberships.some((m: any) => m.poleId === poleId && m.role === 'RESP')) return true;
+        return false;
+    };
+    const visiblePoles = isGlobalAdmin ? poles : poles.filter(p => canManagePole(p.id))
 
     // Create Form State
     const [name, setName] = useState('')
@@ -85,58 +99,60 @@ export default function AdminPolesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Create Form */}
-                <div className="bg-white p-6 rounded-lg shadow h-fit">
-                    <h2 className="text-xl font-semibold mb-4">Nouveau Pôle</h2>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-bold">Nom (ex: Sport, Anim)</label>
-                            <input className="border p-2 w-full rounded" value={name} onChange={e => setName(e.target.value)} required />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold">Description</label>
-                            <input className="border p-2 w-full rounded" value={description} onChange={e => setDescription(e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-bold">Couleur (Code Hex)</label>
-                            <div className="flex gap-2">
-                                <input type="color" className="h-10 w-10 border rounded" value={color} onChange={e => setColor(e.target.value)} />
-                                <input className="border p-2 w-full rounded" value={color} onChange={e => setColor(e.target.value)} />
+                {isGlobalAdmin && (
+                    <div className="bg-white p-6 rounded-lg shadow h-fit">
+                        <h2 className="text-xl font-semibold mb-4">Nouveau Pôle</h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold">Nom (ex: Sport, Anim)</label>
+                                <input className="border p-2 w-full rounded" value={name} onChange={e => setName(e.target.value)} required />
                             </div>
-                        </div>
-
-                        <div className="border-t pt-4">
-                            <h3 className="font-bold text-sm mb-2 text-gray-700">Permissions Déléguées</h3>
-                            <div className="space-y-2 text-sm">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={perms.ancn} onChange={e => setPerms({ ...perms, ancn: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
-                                    <span>📢 Faire des Annonces globales</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={perms.users} onChange={e => setPerms({ ...perms, users: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
-                                    <span>👥 Modifier les Joueurs (Sports)</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={perms.sched} onChange={e => setPerms({ ...perms, sched: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
-                                    <span>🗓️ Gérer le Planning / Lieux</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={perms.match} onChange={e => setPerms({ ...perms, match: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
-                                    <span>⚽ Créer des Matchs & Scores</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" checked={perms.scan} onChange={e => setPerms({ ...perms, scan: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
-                                    <span>🎫 Scanner & Gérer les Repas</span>
-                                </label>
+                            <div>
+                                <label className="block text-sm font-bold">Description</label>
+                                <input className="border p-2 w-full rounded" value={description} onChange={e => setDescription(e.target.value)} />
                             </div>
-                        </div>
+                            <div>
+                                <label className="block text-sm font-bold">Couleur (Code Hex)</label>
+                                <div className="flex gap-2">
+                                    <input type="color" className="h-10 w-10 border rounded" value={color} onChange={e => setColor(e.target.value)} />
+                                    <input className="border p-2 w-full rounded" value={color} onChange={e => setColor(e.target.value)} />
+                                </div>
+                            </div>
 
-                        <button className="bg-purple-600 text-white font-bold py-2 w-full rounded hover:bg-purple-700 mt-4">Créer</button>
-                    </form>
-                </div>
+                            <div className="border-t pt-4">
+                                <h3 className="font-bold text-sm mb-2 text-gray-700">Permissions Déléguées</h3>
+                                <div className="space-y-2 text-sm">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" checked={perms.ancn} onChange={e => setPerms({ ...perms, ancn: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
+                                        <span>📢 Faire des Annonces globales</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" checked={perms.users} onChange={e => setPerms({ ...perms, users: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
+                                        <span>👥 Modifier les Sports</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" checked={perms.sched} onChange={e => setPerms({ ...perms, sched: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
+                                        <span>🗓️ Gérer le Planning / Lieux</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" checked={perms.match} onChange={e => setPerms({ ...perms, match: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
+                                        <span>⚽ Créer des Matchs & Scores</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" checked={perms.scan} onChange={e => setPerms({ ...perms, scan: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
+                                        <span>🎫 Scanner & Gérer les Repas</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button className="bg-purple-600 text-white font-bold py-2 w-full rounded hover:bg-purple-700 mt-4">Créer</button>
+                        </form>
+                    </div>
+                )}
 
                 {/* List */}
                 <div className="space-y-4">
-                    {poles.map(pole => (
+                    {visiblePoles.map(pole => (
                         <div key={pole.id} className="bg-white p-4 rounded shadow border-l-4 flex justify-between items-center" style={{ borderLeftColor: pole.color }}>
                             <div>
                                 <h3 className="font-bold text-lg">{pole.name}</h3>
@@ -175,9 +191,11 @@ export default function AdminPolesPage() {
                                 >
                                     Modifier
                                 </button>
-                                <button onClick={() => handleDelete(pole.id)} className="bg-red-50 text-red-500 hover:bg-red-100 font-bold px-3 py-1 rounded text-sm">
-                                    Supprimer
-                                </button>
+                                {isGlobalAdmin && (
+                                    <button onClick={() => handleDelete(pole.id)} className="bg-red-50 text-red-500 hover:bg-red-100 font-bold px-3 py-1 rounded text-sm">
+                                        Supprimer
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -215,7 +233,7 @@ export default function AdminPolesPage() {
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" checked={editForm.users} onChange={e => setEditForm({ ...editForm, users: e.target.checked })} className="rounded text-purple-600 h-4 w-4" />
-                                        <span>👥 Modifier les Joueurs (Sports)</span>
+                                        <span>👥 Modifier les Sports</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" checked={editForm.sched} onChange={e => setEditForm({ ...editForm, sched: e.target.checked })} className="rounded text-purple-600 h-4 w-4" />

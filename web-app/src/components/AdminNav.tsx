@@ -56,7 +56,7 @@ export default function AdminNav({ role }: { role: string }) {
                         {(isGlobalAdmin || hasPerm('canManageMatches')) &&
                             <NavItem href="/admin/matches" label="⚽️ Matchs & Score" active={pathname.startsWith('/admin/matches')} className="text-red-300" onClick={toggle} />
                         }
-                        {isGlobalAdmin &&
+                        {(isGlobalAdmin || hasPerm('canManageUsers')) &&
                             <NavItem href="/admin/sports" label="🏅 Sports" active={pathname.startsWith('/admin/sports')} className="text-blue-300" onClick={toggle} />
                         }
                         {(isGlobalAdmin || hasPerm('canManageScanner')) &&
@@ -72,7 +72,7 @@ export default function AdminNav({ role }: { role: string }) {
                         <NavItem href="/admin/poles" label="🎯 Pôles" active={pathname.startsWith('/admin/poles')} onClick={toggle} />
                     </div>
 
-                    {isGlobalAdmin && (
+                    {(isGlobalAdmin || role === 'POLE_RESP' || memberships.some((m: any) => m.role === 'RESP')) && (
                         <NavItem href="/admin/users" label="👥 Utilisateurs" active={pathname.startsWith('/admin/users')} className="text-yellow-300" onClick={toggle} />
                     )}
 

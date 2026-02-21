@@ -448,13 +448,18 @@ export default function AdminUsersPage() {
                                         )}
                                     </td>
                                     <td className="px-4 py-3 flex flex-wrap gap-2">
-                                        {user.memberships.map(m => (
-                                            <span key={m.poleId} className={`inline-flex items-center px-2 py-1 rounded text-xs border ${m.role === 'RESP' ? 'bg-green-50 text-green-800' : 'bg-blue-50 text-blue-800'
-                                                }`}>
-                                                {m.role} @ {getPoleName(m.poleId)}
-                                                <button onClick={() => removeStaffRole(user.id, 'POLE', m.poleId)} className="ml-2 text-gray-400 hover:text-red-600">x</button>
-                                            </span>
-                                        ))}
+                                        {user.memberships.map(m => {
+                                            const canRemoveStaff = session?.user?.role === 'SUPER_ADMIN' || session?.user?.role === 'ADMIN' || (session?.user as any)?.poleId === m.poleId || (session?.user as any)?.memberships?.some((um: any) => um.poleId === m.poleId && um.role === 'RESP');
+                                            return (
+                                                <span key={m.poleId} className={`inline-flex items-center px-2 py-1 rounded text-xs border ${m.role === 'RESP' ? 'bg-green-50 text-green-800' : 'bg-blue-50 text-blue-800'
+                                                    }`}>
+                                                    {m.role} @ {getPoleName(m.poleId)}
+                                                    {canRemoveStaff && (
+                                                        <button onClick={() => removeStaffRole(user.id, 'POLE', m.poleId)} className="ml-2 text-gray-400 hover:text-red-600">x</button>
+                                                    )}
+                                                </span>
+                                            )
+                                        })}
                                     </td>
                                     <td className="px-4 py-3">
                                         <button
@@ -559,7 +564,7 @@ export default function AdminUsersPage() {
                                     <label className="block text-sm font-bold mb-1">Pôle Concerné</label>
                                     <select className="w-full border p-2 rounded" value={selectedPole} onChange={e => setSelectedPole(e.target.value)}>
                                         <option value="">Sélectionner...</option>
-                                        {poles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        {poles.filter(p => session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN' || (session?.user as any)?.poleId === p.id || (session?.user as any)?.memberships?.some((um: any) => um.poleId === p.id && um.role === 'RESP')).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                     </select>
                                 </div>
                             )}

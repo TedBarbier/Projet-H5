@@ -20,25 +20,27 @@ export async function hasPermission(permissionKey: PermissionKey): Promise<boole
     }
 
     // For Staff, check if any of their associated poles grants the permission
-    if (userRole === 'POLE_STAFF' || userRole === 'POLE_RESP' || userRole === 'STAFF') { // Inclusive of legacy role naming
-        const user = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            include: {
-                memberships: { include: { pole: true } },
-                pole: true // Legacy fallback check
-            }
-        });
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: {
+            memberships: { include: { pole: true } },
+            pole: true // Legacy fallback check
+        }
+    });
 
-        if (!user) return false;
+    if (!user) return false;
 
-        const hasPolePerm = user.memberships.some(membership => {
-            return (membership.pole as any)[permissionKey] === true;
-        });
+    // Check if any membership provides the permission
+    const hasPolePerm = user.memberships.some(membership => {
+        return (membership.pole as any)[permissionKey] === true;
+    });
 
-        const hasLegacyPerm = user.pole ? (user.pole as any)[permissionKey] === true : false;
+    const hasLegacyPerm = user.pole ? (user.pole as any)[permissionKey] === true : false;
 
-        return hasPolePerm || hasLegacyPerm;
-    }
+    // Also true if global role is POLE_RESP (maybe they don't have pole perm directly, but by definition they are a pole resp)
+    // Wait, let's keep it strictly based on pole permissions if that was the legacy way, or just if they are POLE_RESP.
+    if (userRole === 'POLE_RESP' && permissionKey === 'canManageUsers') return true; // As per the prompt requirement
 
-    return false;
+    return hasPolePerm || hasLegacyPerm;
+
 }
