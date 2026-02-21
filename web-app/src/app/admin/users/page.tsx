@@ -38,6 +38,12 @@ export default function AdminUsersPage() {
     const [selectedRole, setSelectedRole] = useState('')
     const [selectedPole, setSelectedPole] = useState('')
 
+    // Push Modal
+    const [showPushModal, setShowPushModal] = useState(false)
+    const [selectedUserForPush, setSelectedUserForPush] = useState<User | null>(null)
+    const [pushForm, setPushForm] = useState({ title: '', body: '' })
+    const [isSendingPush, setIsSendingPush] = useState(false)
+
     useEffect(() => {
         fetchData()
     }, [])
@@ -162,6 +168,45 @@ export default function AdminUsersPage() {
         } catch (e) { console.error(e) }
     }
 
+    // --- Custom Push Action ---
+    const handleSendPush = async () => {
+        if (!pushForm.title || !pushForm.body) return;
+        setIsSendingPush(true)
+        try {
+            // Include userId only if a specific user was selected (null means global broadcast)
+            const payload = {
+                title: pushForm.title,
+                body: pushForm.body,
+                ...(selectedUserForPush ? { userId: selectedUserForPush.id } : {})
+            };
+
+            const res = await fetch('/api/admin/push/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            if (res.ok) {
+                const data = await res.json();
+                if (data.sent > 0) {
+                    alert(`✅ Notification envoyée et reçue par ${data.sent} appareil(s).`);
+                } else if (data.totalDevices === 0) {
+                    alert(`⚠️ Cet utilisateur n'a activé les notifications sur aucun appareil.`);
+                } else {
+                    alert(`❌ Échec de la livraison. Les abonnements peuvent être expirés.`);
+                }
+                setShowPushModal(false);
+                setPushForm({ title: '', body: '' })
+            } else {
+                alert("❌ Erreur d'envoi");
+            }
+        } catch (error) {
+            console.error(error)
+            alert("❌ Erreur serveur");
+        } finally {
+            setIsSendingPush(false)
+        }
+    }
+
     // --- Render Helpers ---
 
     const isPaid = (u: User) => u.payments.some(p => p.status === 'PAID');
@@ -190,26 +235,40 @@ export default function AdminUsersPage() {
         <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-6">Administration</h1>
 
-            {/* Tabs */}
-            <div className="flex border-b border-gray-200 mb-6 space-x-4">
-                <button
-                    onClick={() => setActiveTab('users')}
-                    className={`py-2 px-4 font-bold ${activeTab === 'users' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
-                >
-                    Utilisateurs
-                </button>
-                <button
-                    onClick={() => setActiveTab('cotisants')}
-                    className={`py-2 px-4 font-bold ${activeTab === 'cotisants' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
-                >
-                    Cotisants
-                </button>
-                <button
-                    onClick={() => setActiveTab('staff')}
-                    className={`py-2 px-4 font-bold ${activeTab === 'staff' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
-                >
-                    Staff & Grades
-                </button>
+            {/* Tabs & Global Actions */}
+            <div className="flex border-b border-gray-200 mb-6 justify-between items-end">
+                <div className="flex space-x-4">
+                    <button
+                        onClick={() => setActiveTab('users')}
+                        className={`py-2 px-4 font-bold ${activeTab === 'users' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                    >
+                        Utilisateurs
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('cotisants')}
+                        className={`py-2 px-4 font-bold ${activeTab === 'cotisants' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                    >
+                        Cotisants
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('staff')}
+                        className={`py-2 px-4 font-bold ${activeTab === 'staff' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                    >
+                        Staff & Grades
+                    </button>
+                </div>
+
+                <div className="pb-2">
+                    <button
+                        onClick={() => {
+                            setSelectedUserForPush(null); // null means "Everyone"
+                            setShowPushModal(true);
+                        }}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition-colors text-sm flex items-center gap-2"
+                    >
+                        <span>📢</span> Push Global
+                    </button>
+                </div>
             </div>
 
             {/* Tab: Users (Edit Info) */}
@@ -237,6 +296,15 @@ export default function AdminUsersPage() {
                                             className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs font-bold hover:bg-blue-200"
                                         >
                                             Modifier
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUserForPush(user);
+                                                setShowPushModal(true);
+                                            }}
+                                            className="bg-purple-100 text-purple-700 px-3 py-1 rounded text-xs font-bold hover:bg-purple-200"
+                                        >
+                                            🔔 Push
                                         </button>
                                         <button
                                             onClick={() => handleDeleteUser(user.id)}
@@ -499,6 +567,47 @@ export default function AdminUsersPage() {
                             <div className="flex justify-end gap-2 pt-4">
                                 <button onClick={() => setShowStaffModal(false)} className="px-4 py-2 text-gray-600">Annuler</button>
                                 <button onClick={handleAddStaffSubmit} className="px-4 py-2 bg-indigo-600 text-white rounded font-bold">Valider</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL: Send Custom Push */}
+            {showPushModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                        <h3 className="text-lg font-bold mb-4">
+                            {selectedUserForPush ? `Notification Push (${selectedUserForPush.name || selectedUserForPush.email})` : '📢 Notification Push Globale (Tous les membres)'}
+                        </h3>
+                        <div className="space-y-4">
+                            <p className="text-sm text-gray-500 mb-2">Cette notification s'affichera directement sur l'écran du joueur sans passer par le fil d'actualité global.</p>
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Titre</label>
+                                <input
+                                    className="w-full border p-2 rounded"
+                                    value={pushForm.title}
+                                    onChange={e => setPushForm({ ...pushForm, title: e.target.value })}
+                                    placeholder="⚠️ Alerte Match"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold mb-1">Message</label>
+                                <textarea
+                                    className="w-full border p-2 rounded h-24"
+                                    value={pushForm.body}
+                                    onChange={e => setPushForm({ ...pushForm, body: e.target.value })}
+                                    placeholder="Rendez-vous sur le terrain 3 immédiatement."
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-4">
+                                <button onClick={() => setShowPushModal(false)} className="px-4 py-2 text-gray-600">Annuler</button>
+                                <button onClick={handleSendPush} disabled={isSendingPush} className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded font-bold disabled:opacity-50">
+                                    {isSendingPush ? 'Envoi...' : '🔔 Envoyer Direct'}
+                                </button>
                             </div>
                         </div>
                     </div>
