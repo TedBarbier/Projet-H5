@@ -3,12 +3,17 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 export default function AdminNav({ role }: { role: string }) {
     const [isOpen, setIsOpen] = useState(false)
     const pathname = usePathname()
+    const { data: session } = useSession()
 
     const isGlobalAdmin = ["SUPER_ADMIN", "ADMIN"].includes(role);
+    // @ts-ignore
+    const memberships = session?.user?.memberships || [];
+    const hasPerm = (perm: string) => isGlobalAdmin || memberships.some((m: any) => m.permissions && m.permissions[perm]);
 
     const toggle = () => setIsOpen(!isOpen)
 
@@ -43,16 +48,24 @@ export default function AdminNav({ role }: { role: string }) {
                 </div>
 
                 <nav className="space-y-4">
-                    {isGlobalAdmin && (
-                        <>
-                            <NavItem href="/admin" label="🏠 Dashboard" active={pathname === '/admin'} onClick={toggle} />
+                    <>
+                        <NavItem href="/admin" label="🏠 Dashboard" active={pathname === '/admin'} onClick={toggle} />
+                        {(isGlobalAdmin || hasPerm('canManageAnnouncements')) &&
                             <NavItem href="/admin/announcements" label="📢 Annonces" active={pathname.startsWith('/admin/announcements')} onClick={toggle} />
+                        }
+                        {(isGlobalAdmin || hasPerm('canManageMatches')) &&
                             <NavItem href="/admin/matches" label="⚽️ Matchs & Score" active={pathname.startsWith('/admin/matches')} className="text-red-300" onClick={toggle} />
+                        }
+                        {isGlobalAdmin &&
                             <NavItem href="/admin/sports" label="🏅 Sports" active={pathname.startsWith('/admin/sports')} className="text-blue-300" onClick={toggle} />
+                        }
+                        {(isGlobalAdmin || hasPerm('canManageScanner')) &&
                             <NavItem href="/admin/scan" label="📷 Scanner" active={pathname.startsWith('/admin/scan')} onClick={toggle} />
+                        }
+                        {(isGlobalAdmin || hasPerm('canManageSchedule')) &&
                             <NavItem href="/admin/schedule" label="📅 Planning & Lieux" active={pathname.startsWith('/admin/schedule')} onClick={toggle} />
-                        </>
-                    )}
+                        }
+                    </>
 
                     {/* Poles Visible to Resp & Admins */}
                     <div className="border-t border-gray-700 pt-4">

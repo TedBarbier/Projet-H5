@@ -17,11 +17,19 @@ export default async function PoleDashboard({
     // @ts-ignore
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        include: { pole: true }
+        include: { pole: true, memberships: { include: { pole: true } } }
     });
 
     let poleId = user?.pole?.id;
     let poleName = user?.pole?.name;
+
+    if (!poleId && user?.memberships && user.memberships.length > 0) {
+        const activeMembership = user.memberships.find(m => ["STAFF", "RESP"].includes(m.role)) || user.memberships[0];
+        if (activeMembership.pole) {
+            poleId = activeMembership.poleId;
+            poleName = activeMembership.pole.name;
+        }
+    }
 
     // Admin Override
     // @ts-ignore

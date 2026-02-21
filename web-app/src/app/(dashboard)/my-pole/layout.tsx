@@ -16,8 +16,17 @@ export default async function PoleLayout({ children }: { children: React.ReactNo
         });
     }
 
-    // @ts-ignore
-    const userPoleId = session?.user?.id ? (await prisma.user.findUnique({ where: { id: session.user.id }, select: { poleId: true } }))?.poleId : null;
+    const user = session?.user?.id ? await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { poleId: true, memberships: { select: { poleId: true, role: true } } }
+    }) : null;
+
+    let userPoleId = user?.poleId;
+    if (!userPoleId && user?.memberships && user.memberships.length > 0) {
+        // Find best membership (STAFF/RESP priority, or first)
+        const activeMembership = user.memberships.find(m => ["STAFF", "RESP"].includes(m.role)) || user.memberships[0];
+        userPoleId = activeMembership.poleId;
+    }
 
     return (
         <PoleLayoutClient

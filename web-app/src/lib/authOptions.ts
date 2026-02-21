@@ -110,10 +110,27 @@ export const authOptions: NextAuthOptions = {
                 // Fetch memberships on initial sign in to ensure we have them
                 const dbUser = await prisma.user.findUnique({
                     where: { id: user.id },
-                    include: { memberships: true }
+                    include: {
+                        memberships: {
+                            include: { pole: true } // Include pole to get its permissions
+                        }
+                    }
                 });
                 if (dbUser) {
-                    token.memberships = dbUser.memberships.map(m => ({ poleId: m.poleId, role: m.role }));
+                    token.memberships = dbUser.memberships.map(m => {
+                        const pole = m.pole as any;
+                        return {
+                            poleId: m.poleId,
+                            role: m.role,
+                            permissions: { // Extract permissions to the token
+                                canManageAnnouncements: pole.canManageAnnouncements,
+                                canManageUsers: pole.canManageUsers,
+                                canManageSchedule: pole.canManageSchedule,
+                                canManageMatches: pole.canManageMatches,
+                                canManageScanner: pole.canManageScanner
+                            }
+                        };
+                    });
                 }
             }
 

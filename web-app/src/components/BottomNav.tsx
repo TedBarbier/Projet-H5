@@ -27,8 +27,19 @@ export default function BottomNav() {
         navItems.push({ name: 'Mon Pôle', href: '/my-pole/tasks', icon: '⛺' })
     }
 
-    // Add Admin panel only for Admins, Resps, and Staff
-    if (["SUPER_ADMIN", "ADMIN", "POLE_RESP", "STAFF"].includes(role || '')) {
+    // Check if user has any administrative granular permissions via their pole memberships
+    const hasGranularAdminPerms = memberships.some((m: any) =>
+        m.permissions && (
+            m.permissions.canManageAnnouncements ||
+            m.permissions.canManageUsers ||
+            m.permissions.canManageSchedule ||
+            m.permissions.canManageMatches ||
+            m.permissions.canManageScanner
+        )
+    );
+
+    // Add Admin panel only for Admins, or Staff/Resps WITH granular permissions
+    if (["SUPER_ADMIN", "ADMIN"].includes(role || '') || hasGranularAdminPerms) {
         navItems.push({ name: 'Admin', href: '/admin', icon: '⚙️' })
     }
 
