@@ -8,7 +8,7 @@ import webpush from 'web-push';
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 webpush.setVapidDetails(
-    'mailto:contact@projet-h5.fr',
+    'https://172.189.176.20',
     'BAhNnVh8vY-plKPwFVbTQ90e4HSlUnFl6HmefQEwI91ZH3CjsAkx2GWPS47kgul1GBlWUcj57T-hUUthomBIjV0',
     'f96Pu6a9s7lFkKcf_UUjH4w7ZavVugP_FJIV3uB9uWY'
 );
