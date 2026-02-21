@@ -1,20 +1,30 @@
 self.addEventListener('push', function (event) {
-    if (event.data) {
-        const data = event.data.json();
+    console.log('[Service Worker] Push Received.');
+    console.log(`[Service Worker] Push had this data: "${event.data ? event.data.text() : 'no data'}"`);
 
-        const options = {
-            body: data.body,
-            icon: '/icon-192x192.png',
-            badge: '/icon-192x192.png',
-            vibrate: [100, 50, 100],
-            data: {
-                dateOfArrival: Date.now(),
-                primaryKey: '2'
-            }
-        };
+    try {
+        if (event.data) {
+            const data = event.data.json();
 
+            const title = data.title || "Nouvelle Annonce H5";
+            const options = {
+                body: data.body || "Vous avez un nouveau message.",
+                vibrate: [100, 50, 100],
+                data: {
+                    dateOfArrival: Date.now(),
+                    primaryKey: '2'
+                }
+            };
+
+            event.waitUntil(
+                self.registration.showNotification(title, options)
+            );
+        }
+    } catch (error) {
+        console.error('[Service Worker] Push event error:', error);
+        // Fallback notification if parsing fails
         event.waitUntil(
-            self.registration.showNotification(data.title, options)
+            self.registration.showNotification("Projet H5", { body: "Nouvelle notification reçue !" })
         );
     }
 });
