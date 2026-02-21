@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 type Conversation = {
@@ -17,6 +17,16 @@ type Conversation = {
 export default function ConversationList({ basePath = '/chats' }: { basePath?: string }) {
     const [conversations, setConversations] = useState<Conversation[]>([])
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const viewPole = searchParams.get('viewPole')
+
+    const getHref = (id: string) => {
+        let href = `${basePath}/${id}`;
+        if (viewPole) {
+            href += `?viewPole=${viewPole}`;
+        }
+        return href;
+    }
 
     useEffect(() => {
         // ... (fetch logic remains same)
@@ -54,7 +64,7 @@ export default function ConversationList({ basePath = '/chats' }: { basePath?: s
             {conversations.map(c => (
                 <Link
                     key={c.id}
-                    href={`${basePath}/${c.id}`}
+                    href={getHref(c.id)}
                     className="block bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 transition"
                 >
                     <div className="flex justify-between items-start">

@@ -6,15 +6,20 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function PoleChatPage({
-    params
+    params,
+    searchParams
 }: {
     params: Promise<{ id: string }>
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
     const session = await getServerSession(authOptions);
     // @ts-ignore
     if (!session) redirect('/');
 
     const { id } = await params;
+    const sp = await searchParams;
+    const viewPole = sp.viewPole as string;
+    const backHref = viewPole ? `/my-pole/discussions?viewPole=${viewPole}` : "/my-pole/discussions";
 
     // Fetch conversation details for the header
     const conversation = await prisma.conversation.findUnique({
@@ -51,7 +56,7 @@ export default async function PoleChatPage({
     return (
         <div className="flex flex-col h-[calc(100vh-100px)]">
             <div className="mb-2">
-                <Link href="/my-pole/discussions" className="text-sm text-gray-500 hover:text-gray-800">
+                <Link href={backHref} className="text-sm text-gray-500 hover:text-gray-800">
                     ← Retour aux discussions
                 </Link>
             </div>

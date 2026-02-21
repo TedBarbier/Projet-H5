@@ -60,6 +60,7 @@ export async function POST(
 
         return NextResponse.json(message);
     } catch (error) {
+        console.error("Chat Send Error:", error);
         return NextResponse.json({ error: 'Send failed' }, { status: 500 });
     }
 }

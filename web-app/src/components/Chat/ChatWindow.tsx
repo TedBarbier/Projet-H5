@@ -65,13 +65,21 @@ export default function ChatWindow({ conversationId, conversationName }: { conve
         e.preventDefault();
         if (!input.trim()) return;
 
-        await fetch(`/api/chats/${conversationId}`, {
+        const res = await fetch(`/api/chats/${conversationId}`, {
             method: 'POST',
             body: JSON.stringify({ content: input }),
             headers: { 'Content-Type': 'application/json' }
         });
         setInput('');
-        // Optimistic update could happen here but we rely on socket for now
+
+        if (res.ok) {
+            const newMessage = await res.json();
+            setMessages(prev => {
+                if (prev.some(m => m.id === newMessage.id)) return prev;
+                return [...prev, newMessage];
+            });
+            scrollToBottom();
+        }
     };
 
     return (
