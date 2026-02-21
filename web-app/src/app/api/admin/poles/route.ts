@@ -34,14 +34,20 @@ export async function POST(req: Request) {
     if (!await checkAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     try {
-        const { name, description, color, canManageAnnouncements, canManageUsers, canManageSchedule, canManageMatches } = await req.json();
+        const { name, description, color, canManageAnnouncements, canManageUsers, canManageSchedule, canManageMatches, canManageScanner } = await req.json();
         const pole = await prisma.pole.create({
             data: {
                 name, description, color,
+                // @ts-ignore
                 canManageAnnouncements: canManageAnnouncements || false,
+                // @ts-ignore
                 canManageUsers: canManageUsers || false,
+                // @ts-ignore
                 canManageSchedule: canManageSchedule || false,
-                canManageMatches: canManageMatches || false
+                // @ts-ignore
+                canManageMatches: canManageMatches || false,
+                // @ts-ignore
+                canManageScanner: canManageScanner || false
             }
         });
         return NextResponse.json(pole);
@@ -54,7 +60,7 @@ export async function PUT(req: Request) {
     if (!await checkAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     try {
-        const { id, name, description, color, canManageAnnouncements, canManageUsers, canManageSchedule, canManageMatches } = await req.json();
+        const { id, name, description, color, canManageAnnouncements, canManageUsers, canManageSchedule, canManageMatches, canManageScanner } = await req.json();
 
         if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
@@ -62,10 +68,16 @@ export async function PUT(req: Request) {
             where: { id },
             data: {
                 name, description, color,
+                // @ts-ignore
                 canManageAnnouncements,
+                // @ts-ignore
                 canManageUsers,
+                // @ts-ignore
                 canManageSchedule,
-                canManageMatches
+                // @ts-ignore
+                canManageMatches,
+                // @ts-ignore
+                canManageScanner
             }
         });
         return NextResponse.json(pole);

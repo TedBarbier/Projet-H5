@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 
-export type PermissionKey = 'canManageAnnouncements' | 'canManageUsers' | 'canManageSchedule' | 'canManageMatches';
+export type PermissionKey = 'canManageAnnouncements' | 'canManageUsers' | 'canManageSchedule' | 'canManageMatches' | 'canManageScanner';
 
 /**
  * Checks if the current authenticated user has global Admin rights, 

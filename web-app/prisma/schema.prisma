@@ -102,6 +102,7 @@ model Pole {
   canManageUsers         Boolean @default(false)
   canManageSchedule      Boolean @default(false)
   canManageMatches       Boolean @default(false)
+  canManageScanner       Boolean @default(false)
 
   members     User[]
   memberships PoleMembership[]

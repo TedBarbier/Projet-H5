@@ -8,6 +8,7 @@ type Pole = {
     canManageUsers: boolean,
     canManageSchedule: boolean,
     canManageMatches: boolean,
+    canManageScanner: boolean,
     _count: { members: number, memberships?: number }
 }
 
@@ -18,11 +19,11 @@ export default function AdminPolesPage() {
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
     const [color, setColor] = useState('#EF4444')
-    const [perms, setPerms] = useState({ ancn: false, users: false, sched: false, match: false })
+    const [perms, setPerms] = useState({ ancn: false, users: false, sched: false, match: false, scan: false })
 
     // Edit Modal State
     const [editingPole, setEditingPole] = useState<Pole | null>(null)
-    const [editForm, setEditForm] = useState({ name: '', description: '', color: '', ancn: false, users: false, sched: false, match: false })
+    const [editForm, setEditForm] = useState({ name: '', description: '', color: '', ancn: false, users: false, sched: false, match: false, scan: false })
 
     useEffect(() => { fetchPoles() }, [])
 
@@ -41,10 +42,11 @@ export default function AdminPolesPage() {
                 canManageAnnouncements: perms.ancn,
                 canManageUsers: perms.users,
                 canManageSchedule: perms.sched,
-                canManageMatches: perms.match
+                canManageMatches: perms.match,
+                canManageScanner: perms.scan
             })
         })
-        setName(''); setDescription(''); setPerms({ ancn: false, users: false, sched: false, match: false });
+        setName(''); setDescription(''); setPerms({ ancn: false, users: false, sched: false, match: false, scan: false });
         fetchPoles()
     }
 
@@ -63,7 +65,8 @@ export default function AdminPolesPage() {
                 canManageAnnouncements: editForm.ancn,
                 canManageUsers: editForm.users,
                 canManageSchedule: editForm.sched,
-                canManageMatches: editForm.match
+                canManageMatches: editForm.match,
+                canManageScanner: editForm.scan
             })
         })
         setEditingPole(null);
@@ -120,6 +123,10 @@ export default function AdminPolesPage() {
                                     <input type="checkbox" checked={perms.match} onChange={e => setPerms({ ...perms, match: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
                                     <span>⚽ Créer des Matchs & Scores</span>
                                 </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" checked={perms.scan} onChange={e => setPerms({ ...perms, scan: e.target.checked })} className="rounded text-purple-600 focus:ring-purple-500 h-4 w-4" />
+                                    <span>🎫 Scanner & Gérer les Repas</span>
+                                </label>
                             </div>
                         </div>
 
@@ -141,6 +148,7 @@ export default function AdminPolesPage() {
                                     {pole.canManageUsers && <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-medium">👥 Joueurs</span>}
                                     {pole.canManageSchedule && <span className="bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded font-medium">🗓️ Planning</span>}
                                     {pole.canManageMatches && <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded font-medium">⚽ Matchs</span>}
+                                    {pole.canManageScanner && <span className="bg-pink-100 text-pink-800 text-xs px-2 py-0.5 rounded font-medium">🎫 Scan</span>}
                                 </div>
 
                                 <div className="px-1 py-1">
@@ -159,7 +167,8 @@ export default function AdminPolesPage() {
                                         setEditForm({
                                             name: pole.name, description: pole.description || '', color: pole.color,
                                             ancn: pole.canManageAnnouncements, users: pole.canManageUsers,
-                                            sched: pole.canManageSchedule, match: pole.canManageMatches
+                                            sched: pole.canManageSchedule, match: pole.canManageMatches,
+                                            scan: pole.canManageScanner
                                         });
                                     }}
                                     className="bg-gray-100 text-gray-700 hover:bg-gray-200 font-bold px-3 py-1 rounded text-sm"
@@ -215,6 +224,10 @@ export default function AdminPolesPage() {
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" checked={editForm.match} onChange={e => setEditForm({ ...editForm, match: e.target.checked })} className="rounded text-purple-600 h-4 w-4" />
                                         <span>⚽ Créer des Matchs & Scores</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" checked={editForm.scan} onChange={e => setEditForm({ ...editForm, scan: e.target.checked })} className="rounded text-purple-600 h-4 w-4" />
+                                        <span>🎫 Scanner & Gérer les Repas</span>
                                     </label>
                                 </div>
                             </div>

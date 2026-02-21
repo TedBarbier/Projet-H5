@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createHmac } from 'crypto';
+import { hasPermission } from '@/lib/authUtils';
 
 // GET /api/admin/scan
 // Returns: { settings: { isMealActive: boolean }, recentScans: MealLog[] }
 export async function GET(req: Request) {
+    if (!await hasPermission('canManageScanner')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
     try {
         const settings = await prisma.globalSettings.findUnique({ where: { id: "settings" } })
             || await prisma.globalSettings.create({ data: { id: "settings", isMealActive: false } });
@@ -24,6 +28,10 @@ export async function GET(req: Request) {
 // PUT /api/admin/scan
 // Updates settings (e.g., toggle meal active)
 export async function PUT(req: Request) {
+    if (!await hasPermission('canManageScanner')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
     try {
         const body = await req.json();
         console.log("PUT /api/admin/scan received:", body);
@@ -49,6 +57,10 @@ export async function PUT(req: Request) {
 }
 
 export async function POST(req: Request) {
+    if (!await hasPermission('canManageScanner')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
     try {
         // 0. Check Global Switch
         const settings = await prisma.globalSettings.findUnique({ where: { id: "settings" } });
