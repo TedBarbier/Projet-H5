@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 import PushManager from "@/components/PushManager";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
       >
         <Providers>
           <PushManager />
+          <InstallPrompt />
           {children}
         </Providers>
       </body>
