@@ -8,12 +8,16 @@ export const VAPID_PUBLIC_KEY = "BAhNnVh8vY-plKPwFVbTQ90e4HSlUnFl6HmefQEwI91ZH3C
 export default function PushManager() {
     const { data: session } = useSession()
     const [showBanner, setShowBanner] = useState(false);
+    const [isStandalone, setIsStandalone] = useState(false);
 
     useEffect(() => {
         if (!session) return;
 
-        // Only show banner if permission is not yet granted or denied, and push is supported
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
+        const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && (window.navigator as any).standalone === true);
+        setIsStandalone(isStandaloneMode);
+
+        // Only show banner if permission is not yet granted or denied, push is supported, AND we are in PWA mode
+        if (isStandaloneMode && 'serviceWorker' in navigator && 'PushManager' in window) {
             if (Notification.permission === 'default') {
                 setShowBanner(true);
             }
@@ -34,16 +38,23 @@ export default function PushManager() {
                         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
                     });
 
-                    await fetch('/api/push/subscribe', {
+                    const response = await fetch('/api/push/subscribe', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(subscription)
                     });
+                    if (response.ok) {
+                        alert("✅ Notifications activées avec succès !");
+                    } else {
+                        alert("❌ Erreur lors de l'enregistrement serveur.");
+                        console.error('Push Subscription API failed:', await response.text());
+                    }
                 } else {
                     setShowBanner(false);
                 }
             } catch (error) {
                 console.error('Push Subscription failed:', error);
+                alert("❌ Erreur: Impossible d'activer les notifications (" + String(error) + ")");
                 setShowBanner(false);
             }
         }
