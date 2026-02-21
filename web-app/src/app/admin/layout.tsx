@@ -13,7 +13,19 @@ export default async function AdminLayout({
     // Secure Admin Access Server-Side
     // @ts-ignore
     const role = session?.user?.role;
-    if (!session || !["SUPER_ADMIN", "ADMIN", "POLE_RESP"].includes(role as string)) {
+    // @ts-ignore
+    const memberships = session?.user?.memberships || [];
+    const hasGranularAdminPerms = memberships.some((m: any) =>
+        m.permissions && (
+            m.permissions.canManageAnnouncements ||
+            m.permissions.canManageUsers ||
+            m.permissions.canManageSchedule ||
+            m.permissions.canManageMatches ||
+            m.permissions.canManageScanner
+        )
+    );
+
+    if (!session || (!["SUPER_ADMIN", "ADMIN", "POLE_RESP"].includes(role as string) && !hasGranularAdminPerms)) {
         redirect("/") // Redirect unauthorized users to home/feed
     }
 
