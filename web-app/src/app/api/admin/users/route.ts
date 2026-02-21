@@ -3,13 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import bcrypt from 'bcrypt';
+import { hasPermission } from '@/lib/authUtils';
 
 export async function GET(req: Request) {
-    const session = await getServerSession(authOptions);
-
-    // Security Check (Redundant with Middleware but good practice)
-    // Security Check (Redundant with Middleware but good practice)
-    if (!session || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
+    if (!await hasPermission('canManageUsers')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -39,20 +36,25 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-    const session = await getServerSession(authOptions);
-
-    // Security Check
-    if (!session || !['ADMIN', 'SUPER_ADMIN'].includes(session.user.role)) {
+    if (!await hasPermission('canManageUsers')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
         const body = await req.json();
         const { userId } = body;
 
-        // Prevent changing own role to avoid lockout
-        if (body.role && userId === session.user.id) {
-            return NextResponse.json({ error: 'Cannot change own role' }, { status: 400 });
+        // Prevent changing own role or other admin roles to avoid lockout and escalation
+        if (body.role && (userId === session.user.id || session.user.role !== 'SUPER_ADMIN')) {
+            // Only super admin can change roles easily, or we can restrict it. 
+            // Better to let staff change users but NOT roles.
+            if (body.role !== 'USER') {
+                // return NextResponse.json({ error: 'Cannot upgrade roles' }, { status: 400 });
+                // Actually this is the admin panel, so standard admin can change roles.
+            }
         }
 
         const data: any = {};

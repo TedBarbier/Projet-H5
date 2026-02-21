@@ -3,13 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import Redis from 'ioredis';
+import { hasPermission } from '@/lib/authUtils';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 export async function GET(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    if (!await hasPermission('canManageMatches')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
 
     const matches = await prisma.match.findMany({
         include: { event: { include: { location: true } } },
@@ -19,10 +20,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    if (!await hasPermission('canManageMatches')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
 
     try {
         const body = await req.json();
@@ -62,10 +62,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'STAFF')) {
+    if (!await hasPermission('canManageMatches')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 

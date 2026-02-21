@@ -3,14 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 
+import { hasPermission } from '@/lib/authUtils';
+
 async function checkAuth() {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'STAFF')) {
-        return false;
-    }
-    return true;
+    return await hasPermission('canManageSchedule');
 }
 
 export async function GET(req: Request) {
@@ -50,10 +46,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    if (!await checkAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     try {
         const { searchParams } = new URL(req.url);

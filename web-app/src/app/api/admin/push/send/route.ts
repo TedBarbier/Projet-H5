@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import webpush from 'web-push';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
+import { hasPermission } from '@/lib/authUtils';
 
 webpush.setVapidDetails(
     'https://172.189.176.20',
@@ -11,11 +12,10 @@ webpush.setVapidDetails(
 );
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'STAFF')) {
+    if (!await hasPermission('canManageAnnouncements')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+    const session = await getServerSession(authOptions);
 
     try {
         const { userId, title, body } = await req.json();

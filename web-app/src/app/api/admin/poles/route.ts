@@ -34,13 +34,43 @@ export async function POST(req: Request) {
     if (!await checkAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
 
     try {
-        const { name, description, color } = await req.json();
+        const { name, description, color, canManageAnnouncements, canManageUsers, canManageSchedule, canManageMatches } = await req.json();
         const pole = await prisma.pole.create({
-            data: { name, description, color }
+            data: {
+                name, description, color,
+                canManageAnnouncements: canManageAnnouncements || false,
+                canManageUsers: canManageUsers || false,
+                canManageSchedule: canManageSchedule || false,
+                canManageMatches: canManageMatches || false
+            }
         });
         return NextResponse.json(pole);
     } catch (error) {
         return NextResponse.json({ error: 'Creation failed' }, { status: 500 });
+    }
+}
+
+export async function PUT(req: Request) {
+    if (!await checkAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+
+    try {
+        const { id, name, description, color, canManageAnnouncements, canManageUsers, canManageSchedule, canManageMatches } = await req.json();
+
+        if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+
+        const pole = await prisma.pole.update({
+            where: { id },
+            data: {
+                name, description, color,
+                canManageAnnouncements,
+                canManageUsers,
+                canManageSchedule,
+                canManageMatches
+            }
+        });
+        return NextResponse.json(pole);
+    } catch (error) {
+        return NextResponse.json({ error: 'Update failed' }, { status: 500 });
     }
 }
 

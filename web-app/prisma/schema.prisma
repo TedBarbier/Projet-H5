@@ -97,6 +97,12 @@ model Pole {
   description String?
   color       String   @default("#EF4444") // Red default
   
+  // Dynamic Permissions
+  canManageAnnouncements Boolean @default(false)
+  canManageUsers         Boolean @default(false)
+  canManageSchedule      Boolean @default(false)
+  canManageMatches       Boolean @default(false)
+
   members     User[]
   memberships PoleMembership[]
   events      Event[]

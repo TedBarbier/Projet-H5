@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/authOptions";
 import Redis from 'ioredis';
 import webpush from 'web-push';
+import { hasPermission } from '@/lib/authUtils';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
@@ -14,10 +15,7 @@ webpush.setVapidDetails(
 );
 
 export async function GET(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'STAFF')) {
+    if (!await hasPermission('canManageAnnouncements')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
@@ -33,12 +31,10 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN' && session.user.role !== 'STAFF')) {
+    if (!await hasPermission('canManageAnnouncements')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
+    const session = await getServerSession(authOptions);
 
     try {
         const { title, content } = await req.json();
@@ -102,10 +98,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const session = await getServerSession(authOptions);
-    // @ts-ignore
-    // @ts-ignore
-    if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'SUPER_ADMIN')) { // Only Admin can delete
+    if (!await hasPermission('canManageAnnouncements')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
