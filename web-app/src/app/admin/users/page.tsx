@@ -22,7 +22,7 @@ export default function AdminUsersPage() {
     const [users, setUsers] = useState<User[]>([])
     const [poles, setPoles] = useState<Pole[]>([])
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState<'users' | 'cotisants' | 'staff'>('users')
+    const [activeTab, setActiveTab] = useState<'users' | 'cotisants' | 'staff' | null>(null)
 
     // Filters
     const [filterSchool, setFilterSchool] = useState('')
@@ -44,9 +44,16 @@ export default function AdminUsersPage() {
     const [pushForm, setPushForm] = useState({ title: '', body: '' })
     const [isSendingPush, setIsSendingPush] = useState(false)
 
+    const isGlobalAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'SUPER_ADMIN';
+    const isPoleResp = (session?.user as any)?.memberships?.some((m: any) => m.role === 'RESP');
+
     useEffect(() => {
-        fetchData()
-    }, [])
+        if (!activeTab) {
+            if (isGlobalAdmin) setActiveTab('users');
+            else if (isPoleResp) setActiveTab('staff');
+        }
+        fetchData();
+    }, [session])
 
     const fetchData = async () => {
         try {
@@ -238,24 +245,30 @@ export default function AdminUsersPage() {
             {/* Tabs & Global Actions */}
             <div className="flex border-b border-gray-200 mb-6 justify-between items-end">
                 <div className="flex space-x-4">
-                    <button
-                        onClick={() => setActiveTab('users')}
-                        className={`py-2 px-4 font-bold ${activeTab === 'users' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
-                    >
-                        Utilisateurs
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('cotisants')}
-                        className={`py-2 px-4 font-bold ${activeTab === 'cotisants' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
-                    >
-                        Cotisants
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('staff')}
-                        className={`py-2 px-4 font-bold ${activeTab === 'staff' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
-                    >
-                        Staff & Grades
-                    </button>
+                    {isGlobalAdmin && (
+                        <>
+                            <button
+                                onClick={() => setActiveTab('users')}
+                                className={`py-2 px-4 font-bold ${activeTab === 'users' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                            >
+                                Utilisateurs
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('cotisants')}
+                                className={`py-2 px-4 font-bold ${activeTab === 'cotisants' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                            >
+                                Cotisants
+                            </button>
+                        </>
+                    )}
+                    {(isGlobalAdmin || isPoleResp) && (
+                        <button
+                            onClick={() => setActiveTab('staff')}
+                            className={`py-2 px-4 font-bold ${activeTab === 'staff' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}
+                        >
+                            Staff & Grades
+                        </button>
+                    )}
                 </div>
 
                 <div className="pb-2">

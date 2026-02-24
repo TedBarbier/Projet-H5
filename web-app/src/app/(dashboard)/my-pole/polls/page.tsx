@@ -45,6 +45,8 @@ export default function PollsPage() {
                 setPoleId(u.poleId);
             } else if (u.memberships && u.memberships.length > 0) {
                 setPoleId(u.memberships[0].poleId);
+            } else {
+                setLoading(false); // Make sure to stop loading if they have no pole
             }
         }
     }, [session]);

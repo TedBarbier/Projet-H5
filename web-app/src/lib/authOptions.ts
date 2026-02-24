@@ -122,6 +122,8 @@ export const authOptions: NextAuthOptions = {
                 if (dbUser) {
                     // @ts-ignore
                     token.role = dbUser.role;
+                    // @ts-ignore
+                    token.poleId = dbUser.poleId;
                     token.memberships = dbUser.memberships.map(m => {
                         const pole = m.pole as any;
                         return {
