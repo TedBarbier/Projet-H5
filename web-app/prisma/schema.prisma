@@ -34,35 +34,40 @@ model User {
   password      String?
   role          Role      @default(USER)
   school        School?
-  sport         String?   // Could be an enum or relation later
-  
-  accounts      Account[]
-  sessions      Session[]
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  mealLogs      MealLog[]
-  
+  sport         String? // Could be an enum or relation later
+
+  accounts Account[]
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mealLogs MealLog[]
+
   // Relations CMS
   announcements Announcement[]
   poleId        String?
-  pole          Pole?     @relation(fields: [poleId], references: [id])
+  pole          Pole?          @relation(fields: [poleId], references: [id])
 
   // Relations Pole Tools
-  assignedTasks PoleTask[] @relation("AssignedTasks")
-  createdTasks  PoleTask[] @relation("CreatedTasks")
+  assignedTasks PoleTask[]    @relation("AssignedTasks")
+  createdTasks  PoleTask[]    @relation("CreatedTasks")
   messages      PoleMessage[]
   payments      Payment[]
-  
-  memberships   PoleMembership[]
-  
+
+  memberships PoleMembership[]
+
   // New Chat System
   conversations ConversationParticipant[]
   sentMessages  Message[]
 
   // PWA Subscriptions
   pushSubscriptions PushSubscription[]
+
+  // New Features
+  createdPolls       PolePoll[]              @relation("CreatedPolls")
+  pollVotes          PolePollVote[]          @relation("PollVotes")
+  meetingAttendances PoleMeetingAttendance[] @relation("MeetingAttendances")
 }
 
 model MealLog {
@@ -86,17 +91,17 @@ model Announcement {
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
 }
 
 model Pole {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String  @id @default(cuid())
+  name        String  @unique
   description String?
-  color       String   @default("#EF4444") // Red default
-  
+  color       String  @default("#EF4444") // Red default
+
   // Dynamic Permissions
   canManageAnnouncements Boolean @default(false)
   canManageUsers         Boolean @default(false)
@@ -107,23 +112,26 @@ model Pole {
   members     User[]
   memberships PoleMembership[]
   events      Event[]
-  
+
   // Internal Tools
-  tasks       PoleTask[]
-  messages    PoleMessage[]
-  meetings    PoleMeeting[]
-  
+  tasks    PoleTask[]
+  messages PoleMessage[]
+  meetings PoleMeeting[]
+
   // New Chat System
   conversations Conversation[]
+
+  // New Features
+  polls PolePoll[] @relation("PolePolls")
 }
 
 model Location {
-  id       String   @id @default(cuid())
-  name     String   @unique
-  address  String?
-  lat      Float?
-  lng      Float?
-  events   Event[]
+  id      String  @id @default(cuid())
+  name    String  @unique
+  address String?
+  lat     Float?
+  lng     Float?
+  events  Event[]
 }
 
 enum EventType {
@@ -134,49 +142,49 @@ enum EventType {
 }
 
 model Event {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
   startTime   DateTime
   endTime     DateTime
   type        EventType @default(generic)
 
-  locationId  String?
-  location    Location? @relation(fields: [locationId], references: [id])
-  
-  poleId      String?
-  pole        Pole?     @relation(fields: [poleId], references: [id])
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id])
 
-  match       Match?
+  poleId String?
+  pole   Pole?   @relation(fields: [poleId], references: [id])
+
+  match Match?
 }
 
 model Match {
-  id        String   @id @default(cuid())
-  eventId   String   @unique
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id      String @id @default(cuid())
+  eventId String @unique
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  homeTeam  String   // e.g. "Rouen"
-  awayTeam  String   // e.g. "Lyon"
-  homeScore Int      @default(0)
-  awayScore Int      @default(0)
-  
-  status    String   @default("SCHEDULED") // SCHEDULED, LIVE, FINISHED
-  sport     String?  // e.g. "Football"
+  homeTeam  String // e.g. "Rouen"
+  awayTeam  String // e.g. "Lyon"
+  homeScore Int    @default(0)
+  awayScore Int    @default(0)
+
+  status String  @default("SCHEDULED") // SCHEDULED, LIVE, FINISHED
+  sport  String? // e.g. "Football"
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -208,48 +216,51 @@ model PoleTask {
   status      String   @default("TODO") // TODO, IN_PROGRESS, DONE
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  poleId      String
-  pole        Pole     @relation(fields: [poleId], references: [id], onDelete: Cascade)
-  
-  creatorId   String?
-  creator     User?    @relation("CreatedTasks", fields: [creatorId], references: [id])
-  
-  assignees   User[]   @relation("AssignedTasks")
-  checklist   TaskChecklistItem[]
+
+  poleId String
+  pole   Pole   @relation(fields: [poleId], references: [id], onDelete: Cascade)
+
+  creatorId String?
+  creator   User?   @relation("CreatedTasks", fields: [creatorId], references: [id])
+
+  assignees User[]              @relation("AssignedTasks")
+  checklist TaskChecklistItem[]
 }
 
 model TaskChecklistItem {
-  id        String   @id @default(cuid())
-  content   String
-  isDone    Boolean  @default(false)
-  
-  taskId    String
-  task      PoleTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id      String  @id @default(cuid())
+  content String
+  isDone  Boolean @default(false)
+
+  taskId String
+  task   PoleTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 model PoleMessage {
   id        String   @id @default(cuid())
   content   String   @db.Text
   createdAt DateTime @default(now())
-  
-  poleId    String
-  pole      Pole     @relation(fields: [poleId], references: [id], onDelete: Cascade)
-  
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+
+  poleId String
+  pole   Pole   @relation(fields: [poleId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
 }
 
 model PoleMeeting {
   id          String   @id @default(cuid())
   title       String
   description String?
+  location    String? // Can be a room name or a URL (Zoom, Teams, etc.)
   startTime   DateTime
   endTime     DateTime
   createdAt   DateTime @default(now())
-  
-  poleId      String
-  pole        Pole     @relation(fields: [poleId], references: [id], onDelete: Cascade)
+
+  poleId String
+  pole   Pole   @relation(fields: [poleId], references: [id], onDelete: Cascade)
+
+  attendances PoleMeetingAttendance[] @relation("MeetingAttendances")
 }
 
 enum PaymentStatus {
@@ -261,10 +272,10 @@ enum PaymentStatus {
 
 model Payment {
   id        String        @id @default(cuid())
-  amount    Int           // Amount in cents
+  amount    Int // Amount in cents
   currency  String        @default("EUR")
   status    PaymentStatus @default(PENDING)
-  lyfId     String?       // ID returned by LyfPay
+  lyfId     String? // ID returned by LyfPay
   userId    String
   user      User          @relation(fields: [userId], references: [id])
   createdAt DateTime      @default(now())
@@ -272,17 +283,17 @@ model Payment {
 }
 
 model SportList {
-  id    String @id @default(cuid())
-  name  String @unique
+  id   String @id @default(cuid())
+  name String @unique
 }
 
 model PoleMembership {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  poleId    String
-  pole      Pole     @relation(fields: [poleId], references: [id], onDelete: Cascade)
-  role      PoleRole // STAFF, RESP
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  poleId String
+  pole   Pole     @relation(fields: [poleId], references: [id], onDelete: Cascade)
+  role   PoleRole // STAFF, RESP
 
   createdAt DateTime @default(now())
 
@@ -295,14 +306,14 @@ enum PoleRole {
 }
 
 model Conversation {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   name      String?
   type      ConversationType @default(GROUP)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 
-  poleId    String?
-  pole      Pole?    @relation(fields: [poleId], references: [id])
+  poleId String?
+  pole   Pole?   @relation(fields: [poleId], references: [id])
 
   participants ConversationParticipant[]
   messages     Message[]
@@ -326,25 +337,91 @@ model ConversationParticipant {
 }
 
 model Message {
-  id             String       @id @default(cuid())
-  content        String       @db.Text
-  createdAt      DateTime     @default(now())
-  
-  senderId       String
-  sender         User         @relation(fields: [senderId], references: [id])
-  
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 
 model PushSubscription {
-  id        String   @id @default(cuid())
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id       String @id @default(cuid())
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
+}
+
+// --- Sondages / Polls ---
+model PolePoll {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  poleId String
+  pole   Pole   @relation("PolePolls", fields: [poleId], references: [id], onDelete: Cascade)
+
+  creatorId String
+  creator   User   @relation("CreatedPolls", fields: [creatorId], references: [id])
+
+  options PolePollOption[]
+  votes   PolePollVote[]
+}
+
+model PolePollOption {
+  id   String @id @default(cuid())
+  text String
+
+  pollId String
+  poll   PolePoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  votes PolePollVote[]
+}
+
+model PolePollVote {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("PollVotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  pollId String
+  poll   PolePoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+
+  optionId String
+  option   PolePollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, pollId])
+}
+
+// --- Présence / Attendance ---
+enum AttendanceStatus {
+  PENDING
+  PRESENT
+  ABSENT
+}
+
+model PoleMeetingAttendance {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("MeetingAttendances", fields: [userId], references: [id], onDelete: Cascade)
+
+  meetingId String
+  meeting   PoleMeeting @relation("MeetingAttendances", fields: [meetingId], references: [id], onDelete: Cascade)
+
+  status AttendanceStatus @default(PENDING)
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, meetingId])
 }

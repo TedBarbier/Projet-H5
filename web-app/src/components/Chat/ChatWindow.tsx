@@ -24,13 +24,11 @@ export default function ChatWindow({ conversationId, conversationName }: { conve
     useEffect(() => {
         fetchMessages();
 
-        const socket = io(); // Connects to same host (wrapper needed?)
-        // Note: Default IO might try to connect to localhost:3000/socket.io
-        // But our server is on port 3001 typically for custom server?
-        // web-app/server.js listens on 3001.
-        // We need to connect to 3001 for WS.
-        // Actually, we should check where the socket server is running.
-        // Assuming localhost:3001 for dev.
+        // Polling fallback to guarantee dynamic chat
+        const intervalId = setInterval(() => {
+            fetchMessages();
+        }, 3000);
+
         const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
         const socketIo = io(socketUrl);
 
@@ -41,12 +39,19 @@ export default function ChatWindow({ conversationId, conversationName }: { conve
         socketIo.on('events-updates', (msg: any) => {
             // Check if message belongs to this conversation
             if (msg.type === 'CHAT_MESSAGE' && msg.conversationId === conversationId) {
-                setMessages(prev => [...prev, msg.message]);
-                scrollToBottom();
+                setMessages(prev => {
+                    const exists = prev.some(m => m.id === msg.message.id);
+                    if (exists) return prev;
+                    scrollToBottom();
+                    return [...prev, msg.message];
+                });
             }
         });
 
-        return () => { socketIo.disconnect() };
+        return () => {
+            clearInterval(intervalId);
+            socketIo.disconnect();
+        };
     }, [conversationId]);
 
     const scrollToBottom = () => {
@@ -56,8 +61,13 @@ export default function ChatWindow({ conversationId, conversationName }: { conve
     const fetchMessages = async () => {
         const res = await fetch(`/api/chats/${conversationId}`);
         if (res.ok) {
-            setMessages(await res.json());
-            scrollToBottom();
+            const newData = await res.json();
+            setMessages(prev => {
+                if (prev.length !== newData.length) {
+                    scrollToBottom();
+                }
+                return newData;
+            });
         }
     };
 

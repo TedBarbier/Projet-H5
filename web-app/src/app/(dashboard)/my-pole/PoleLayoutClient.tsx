@@ -72,8 +72,8 @@ export default function PoleLayoutClient({
                     <Link
                         href={getHref("/my-pole/planner")}
                         className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap ${isActive('/my-pole/planner')
-                                ? 'bg-blue-50 text-blue-700'
-                                : 'text-gray-700 hover:bg-gray-50'
+                            ? 'bg-blue-50 text-blue-700'
+                            : 'text-gray-700 hover:bg-gray-50'
                             }`}
                     >
                         📅 Planning
@@ -87,6 +87,16 @@ export default function PoleLayoutClient({
                             }`}
                     >
                         ✅ Tâches
+                    </Link>
+
+                    <Link
+                        href={getHref("/my-pole/polls")}
+                        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap ${isActive('/my-pole/polls')
+                            ? 'bg-blue-50 text-blue-700'
+                            : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                    >
+                        🗳️ Sondages
                     </Link>
                 </nav>
             </aside>

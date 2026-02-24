@@ -31,13 +31,14 @@ export async function POST(
 
     const { id } = await params;
     const body = await req.json();
-    const { title, description, startTime, endTime } = body;
+    const { title, description, location, startTime, endTime } = body;
 
     try {
         const meeting = await prisma.poleMeeting.create({
             data: {
                 title,
                 description,
+                location,
                 startTime: new Date(startTime),
                 endTime: new Date(endTime),
                 poleId: id
