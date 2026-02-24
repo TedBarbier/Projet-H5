@@ -76,6 +76,10 @@ export default function AdminNav({ role }: { role: string }) {
                         <NavItem href="/admin/users" label="👥 Utilisateurs" active={pathname.startsWith('/admin/users')} className="text-yellow-300" onClick={toggle} />
                     )}
 
+                    {role === 'SUPER_ADMIN' && (
+                        <NavItem href="/admin/domains" label="🌐 Domaines" active={pathname.startsWith('/admin/domains')} className="text-pink-300" onClick={toggle} />
+                    )}
+
                     <div className="border-t border-gray-700 my-4 pt-4">
                         <a href="/my-pole" className="block py-2 px-4 hover:bg-gray-800 rounded text-purple-400 font-bold">🏠 Mon Pôle</a>
                     </div>

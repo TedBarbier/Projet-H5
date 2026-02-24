@@ -7,7 +7,8 @@ import Link from 'next/link';
 export default function RegisterPage() {
     const router = useRouter();
     const [data, setData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         password: '',
         confirmPassword: ''
@@ -24,12 +25,15 @@ export default function RegisterPage() {
         }
 
         try {
+            // Format the name as "LASTNAME FirstName"
+            const formattedName = `${data.lastName.trim().toUpperCase()} ${data.firstName.trim().charAt(0).toUpperCase() + data.firstName.trim().slice(1).toLowerCase()}`;
+
             const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name: data.name, email: data.email, password: data.password })
+                body: JSON.stringify({ name: formattedName, email: data.email, password: data.password })
             });
 
             if (response.ok) {
@@ -53,18 +57,34 @@ export default function RegisterPage() {
 
             <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
                 <form className="space-y-6" onSubmit={registerUser}>
-                    <div>
-                        <label className="block text-sm font-medium leading-6 text-gray-900">
-                            Nom complet
-                        </label>
-                        <div className="mt-2">
-                            <input
-                                type="text"
-                                required
-                                value={data.name}
-                                onChange={(e) => setData({ ...data, name: e.target.value })}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 pl-2"
-                            />
+                    <div className="flex gap-4">
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium leading-6 text-gray-900">
+                                Prénom
+                            </label>
+                            <div className="mt-2">
+                                <input
+                                    type="text"
+                                    required
+                                    value={data.firstName}
+                                    onChange={(e) => setData({ ...data, firstName: e.target.value })}
+                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 pl-2"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium leading-6 text-gray-900">
+                                Nom
+                            </label>
+                            <div className="mt-2">
+                                <input
+                                    type="text"
+                                    required
+                                    value={data.lastName}
+                                    onChange={(e) => setData({ ...data, lastName: e.target.value })}
+                                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 pl-2 uppercase"
+                                />
+                            </div>
                         </div>
                     </div>
 

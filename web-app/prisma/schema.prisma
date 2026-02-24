@@ -25,6 +25,12 @@ enum School {
   HAUTS_DE_FRANCE
 }
 
+model AllowedEmailDomain {
+  id     String @id @default(cuid())
+  domain String @unique // e.g., "insa-lyon.fr", "insa-cvl.fr"
+  school School
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
