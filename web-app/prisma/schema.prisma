@@ -15,20 +15,12 @@ enum Role {
   SUPER_ADMIN
 }
 
-enum School {
-  LYON
-  RENNES
-  ROUEN
-  STRASBOURG
-  TOULOUSE
-  CENTRE_VAL_DE_LOIRE
-  HAUTS_DE_FRANCE
-}
+// Removed enum School
 
 model AllowedEmailDomain {
   id     String @id @default(cuid())
   domain String @unique // e.g., "insa-lyon.fr", "insa-cvl.fr"
-  school School
+  school String
 }
 
 model User {
@@ -39,7 +31,7 @@ model User {
   image         String?
   password      String?
   role          Role      @default(USER)
-  school        School?
+  school        String?
   sport         String? // Could be an enum or relation later
 
   accounts Account[]

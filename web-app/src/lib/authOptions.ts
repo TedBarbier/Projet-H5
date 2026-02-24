@@ -67,19 +67,19 @@ export const authOptions: NextAuthOptions = {
                         const domain = user.email.split('@')[1];
                         let school = null;
 
-                        if (domain.includes('insa-lyon.fr')) school = 'LYON';
-                        else if (domain.includes('insa-rennes.fr')) school = 'RENNES';
-                        else if (domain.includes('insa-rouen.fr')) school = 'ROUEN';
-                        else if (domain.includes('insa-strasbourg.fr')) school = 'STRASBOURG';
-                        else if (domain.includes('insa-toulouse.fr')) school = 'TOULOUSE';
-                        else if (domain.includes('insa-cvl.fr')) school = 'CENTRE_VAL_DE_LOIRE';
-                        else if (domain.includes('insa-hdf.fr')) school = 'HAUTS_DE_FRANCE';
+                        if (domain.includes('insa-lyon.fr')) school = 'INSA Lyon';
+                        else if (domain.includes('insa-rennes.fr')) school = 'INSA Rennes';
+                        else if (domain.includes('insa-rouen.fr')) school = 'INSA Rouen';
+                        else if (domain.includes('insa-strasbourg.fr')) school = 'INSA Strasbourg';
+                        else if (domain.includes('insa-toulouse.fr')) school = 'INSA Toulouse';
+                        else if (domain.includes('insa-cvl.fr')) school = 'INSA Centre Val de Loire';
+                        else if (domain.includes('insa-hdf.fr')) school = 'INSA Hauts-de-France';
 
                         if (school) {
                             // Asynchronously update user school in DB
                             prisma.user.update({
                                 where: { email: user.email },
-                                data: { school: school as any } // Cast to fit Enum
+                                data: { school: school }
                             }).catch(err => console.error("Failed to auto-update school", err));
 
                             // Update local user object so it flows to JWT

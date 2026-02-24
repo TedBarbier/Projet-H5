@@ -67,7 +67,7 @@ export default function ProfilePage() {
                     <div className="border-t pt-4">
                         <p className="text-sm font-medium text-gray-600">École & Sport</p>
                         <p className="text-lg font-bold">
-                            {(session.user as any).school?.replace(/_/g, ' ') || 'École non définie'}
+                            {(session.user as any).school || 'École non définie'}
                             {' - '}
                             {(session.user as any).sport || 'Sport non défini'}
                         </p>

@@ -111,7 +111,7 @@ export default function PaymentPage() {
                         <div>
                             <label className="block text-sm font-medium text-gray-700">École INSA (Détectée)</label>
                             <div className="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 p-2 text-gray-500 border">
-                                {profile?.school ? profile.school.replace(/_/g, ' ') : "Non détectée (Contactez un admin)"}
+                                {profile?.school ? profile.school : "Non détectée (Contactez un admin)"}
                             </div>
                             {!profile?.school && (
                                 <p className="text-xs text-red-500 mt-1">Impossible de détecter votre école via votre email.</p>

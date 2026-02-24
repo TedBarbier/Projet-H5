@@ -38,15 +38,16 @@ export default function PollsPage() {
     const [poleId, setPoleId] = useState<string | null>(null)
 
     useEffect(() => {
-        // Fetch user data to get their poleId
-        fetch('/api/user/me').then(res => res.json()).then(data => {
-            if (data.poleId) {
-                setPoleId(data.poleId)
-            } else if (data.memberships && data.memberships.length > 0) {
-                setPoleId(data.memberships[0].poleId)
+        if (session?.user) {
+            // @ts-ignore
+            const u = session.user;
+            if (u.poleId) {
+                setPoleId(u.poleId);
+            } else if (u.memberships && u.memberships.length > 0) {
+                setPoleId(u.memberships[0].poleId);
             }
-        })
-    }, [])
+        }
+    }, [session]);
 
     useEffect(() => {
         if (poleId) {
@@ -57,7 +58,7 @@ export default function PollsPage() {
     const fetchPolls = async () => {
         if (!poleId) return
         try {
-            const res = await fetch(`/api/poles/${poleId}/polls`)
+            const res = await fetch(`/api/poles/${poleId}/polls`, { cache: 'no-store' })
             if (res.ok) {
                 const data = await res.json()
                 setPolls(data)

@@ -8,16 +8,7 @@ type AllowedEmailDomain = {
     school: string;
 };
 
-// Define the school enum values that we can pick from
-const SCHOOLS = [
-    'LYON',
-    'RENNES',
-    'ROUEN',
-    'STRASBOURG',
-    'TOULOUSE',
-    'CENTRE_VAL_DE_LOIRE',
-    'HAUTS_DE_FRANCE'
-];
+// Removed hardcoded SCHOOLS array since school is now free text
 
 export default function DomainsAdminPage() {
     const [domains, setDomains] = useState<AllowedEmailDomain[]>([]);
@@ -25,7 +16,7 @@ export default function DomainsAdminPage() {
     const [error, setError] = useState('');
 
     const [newDomain, setNewDomain] = useState('');
-    const [selectedSchool, setSelectedSchool] = useState(SCHOOLS[0]);
+    const [selectedSchool, setSelectedSchool] = useState('');
 
     useEffect(() => {
         fetchDomains();
@@ -108,15 +99,14 @@ export default function DomainsAdminPage() {
                     </div>
                     <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">École affectée</label>
-                        <select
+                        <input
+                            type="text"
+                            required
                             value={selectedSchool}
                             onChange={e => setSelectedSchool(e.target.value)}
+                            placeholder="INSA Lyon, Polytechnique, etc."
                             className="w-full p-2 border rounded"
-                        >
-                            {SCHOOLS.map(s => (
-                                <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-                            ))}
-                        </select>
+                        />
                     </div>
                     <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded font-bold hover:bg-green-700">
                         Ajouter
@@ -136,8 +126,7 @@ export default function DomainsAdminPage() {
                     <tbody>
                         {domains.map((d) => (
                             <tr key={d.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                                <td className="p-4 text-gray-800 font-medium">@{d.domain}</td>
-                                <td className="p-4 text-gray-600">{d.school.replace(/_/g, ' ')}</td>
+                                <td className="p-4 text-gray-600">{d.school}</td>
                                 <td className="p-4 text-right">
                                     <button
                                         onClick={() => handleDelete(d.id)}

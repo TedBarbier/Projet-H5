@@ -41,14 +41,14 @@ export default function Planner({ poleId }: { poleId: string }) {
 
     const fetchMeetings = async () => {
         try {
-            const res = await fetch(`/api/poles/${poleId}/meetings`);
+            const res = await fetch(`/api/poles/${poleId}/meetings`, { cache: 'no-store' });
             if (res.ok) {
                 const fetchedMeetings: Meeting[] = await res.json();
 
                 // Fetch attendance for each meeting
                 const meetingsWithAttendance = await Promise.all(
                     fetchedMeetings.map(async (meeting) => {
-                        const attRes = await fetch(`/api/poles/${poleId}/meetings/${meeting.id}/attendance`);
+                        const attRes = await fetch(`/api/poles/${poleId}/meetings/${meeting.id}/attendance`, { cache: 'no-store' });
                         let attendances: Attendance[] = [];
                         if (attRes.ok) {
                             attendances = await attRes.json();

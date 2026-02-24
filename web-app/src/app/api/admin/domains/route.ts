@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/authOptions"
-import { School } from '@prisma/client';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -40,7 +39,7 @@ export async function POST(req: Request) {
         const newDomain = await prisma.allowedEmailDomain.create({
             data: {
                 domain: cleanDomain,
-                school: school as School
+                school: school
             }
         });
 
