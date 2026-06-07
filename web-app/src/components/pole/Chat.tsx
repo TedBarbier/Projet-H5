@@ -24,7 +24,7 @@ export default function Chat({ poleId }: { poleId: string }) {
     useEffect(() => {
         fetchMessages();
 
-        const socketUrl = typeof window !== 'undefined' ? undefined : "http://localhost:3001";
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
         const socket = io(socketUrl as any, { transports: ["websocket"] });
         socket.on('connect', () => {
             console.log("Connected to Chat");

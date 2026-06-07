@@ -13,6 +13,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -21,6 +26,40 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    restart: always
+
+  web:
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL:-http://localhost:3002}
+    container_name: insa-sports-web
+    env_file: .env
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: sh -c "node_modules/.bin/prisma db push && node prisma/seed.js && npm start"
+    restart: always
+
+  ws:
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+    container_name: insa-sports-ws
+    env_file: .env
+    ports:
+      - "3002:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: node server.js
     restart: always
 
 volumes:

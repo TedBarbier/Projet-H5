@@ -22,7 +22,7 @@ export default function Scoreboard() {
 
     useEffect(() => {
         // Connect to WebSocket Server (Phase 4)
-        const socketUrl = typeof window !== 'undefined' ? undefined : "http://localhost:3001";
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
         const socket = io(socketUrl as any, { transports: ["websocket"] });
 
         socket.on('connect', () => {

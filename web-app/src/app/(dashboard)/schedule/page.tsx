@@ -34,7 +34,7 @@ export default function SchedulePage() {
     useEffect(() => {
         fetchEvents()
 
-        const socketUrl = typeof window !== 'undefined' ? undefined : "http://localhost:3001";
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001';
         const socket = io(socketUrl as any, { transports: ["websocket"] });
         socket.on('events-updates', (msg: any) => {
             console.log("Schedule WS Event:", msg);
